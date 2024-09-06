@@ -1,19 +1,13 @@
 package me.mamiiblt.instafel.gplayapi;
 
-import jdk.jshell.spi.ExecutionControlProvider;
 import me.mamiiblt.instafel.gplayapi.utils.AppInfo;
 import me.mamiiblt.instafel.gplayapi.utils.Log;
-import okhttp3.Call;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import okhttp3.*;
 import org.json.JSONObject;
 
-import javax.print.attribute.standard.RequestingUserName;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.LinkPermission;
+import java.net.Authenticator;
 import java.nio.file.Paths;
 import java.util.Properties;
 import java.util.Timer;
@@ -87,6 +81,8 @@ public class Env {
     public static void startChecker() {
         Timer timer = new Timer();
 
+
+        final String[] lastCheckedVersion = {""};
         final int[] checkTime = {0};
 
         TimerTask task = new TimerTask() {
@@ -106,8 +102,12 @@ public class Env {
 
                     if (appInfo64.getVer_name().equals(appInfo32.getVer_name())) {
                         if (appInfo64.getVer_name().contains(".0.0.0.")) { // alpha version names always has this regex
-                            if (getLatestInstafelVersion() != appInfo64.getVer_name()) { // this version released or not
-
+                            if (!lastCheckedVersion[0].equals(appInfo64.getVer_name())) {
+                                lastCheckedVersion[0] = appInfo64.getVer_name();
+                                String latestIflVersion = getLatestInstafelVersion(); // get latest instafel version
+                                if (latestIflVersion != null && latestIflVersion.equals(appInfo64.getVer_name())) { // this version released or not
+                                    triggerUpdate(appInfo64, appInfo32); // trigger the generator
+                                }
                             }
                         }
                     } else {
@@ -123,6 +123,30 @@ public class Env {
         long delayMs = 30000; // check every 30 seconds
         // long delayMs = 900000; // check every 15 minutes
         timer.scheduleAtFixedRate(task, 0, delayMs);
+    }
+
+
+    private static void triggerUpdate(AppInfo appInfo64, AppInfo appInfo32) throws Exception {
+        JSONObject workflowData = new JSONObject();
+        workflowData.put("event_type", "build_multi");
+        workflowData.put("client_payload", new JSONObject()
+                .put("apk_url_64", appInfo64.getApkUrl())
+                .put("apk_url_32", appInfo32.getApkUrl())
+        );
+
+        Request request = new Request.Builder()
+                .url("https://api.github.com/repos/mami-server-2/instafel_generator/dispatches")
+                .post(RequestBody.create(MediaType.parse("application/json"), workflowData.toString()))
+                .addHeader("Authorization", "Bearer " + github_pat)
+                .addHeader("Accept", "application/vnd.github+json")
+                .addHeader("X-GitHub-Api-Version", "2022-11-28")
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) throw new Exception("Error while triggering patcher for version " + appInfo64.getVer_name() + " (" + response.code() + ")");
+
+            Log.println("I", "Generator succesfully triggered for " + appInfo64.getVer_name() + " (status: " + response.code() + ")");
+        }
     }
 
     private static String getLatestInstafelVersion() throws IOException, Exception {
@@ -143,14 +167,12 @@ public class Env {
                 if (line.contains("app.version_name")) {
                     String[] verNameLines = line.split("\\|");
                     for (String part : verNameLines) {
-                        if (!part.isEmpty() && isNumeric(part.replaceAll(" ", ""))) {
-                            Log.println("I", "part: " + part);
+                        if (!part.isEmpty() && isNumeric(part)) {
+                            return part;
                         }
                     }
                 }
             }
-
-            // intihar etmeyi düşünüyorum
         }
         return null;
     }
@@ -164,9 +186,5 @@ public class Env {
         }
 
         return false;
-    }
-
-    private static void triggerUpdate(AppInfo appInfo64, AppInfo appInfo32) {
-
     }
 }
