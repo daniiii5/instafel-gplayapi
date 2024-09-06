@@ -2,9 +2,22 @@ const path = require("path");
 const javaManager = require("./functions/javaManager")
 const fs = require("fs");
 const { spawn } = require("child_process");
+const express = require("express")
 const { exit } = require("process");
 require("dotenv").config()
 var javaDir;
+
+const server = express()
+
+let val = 0;
+server.get("/keep_alive", async (req, res) => {
+    val++;
+    res.send({ time: val })
+})
+
+server.listen(3000, () => {
+    console.log("GPlayAPI's Keep-alive server started on port 3000")
+})
 
 javaManager.installJava().then(methodResponse => {
     if (methodResponse.status == "SUCCESFULLY_INSTALLED" || methodResponse.status == "ALREADY_INSTALLED") {
