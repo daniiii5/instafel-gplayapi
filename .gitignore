@@ -44,3 +44,6 @@ bin/
 ### IFL Config ###
 
 src/main/resources/gplayapi.properties
+.env
+java_runtime
+node_modules

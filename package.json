@@ -1,0 +1,18 @@
+{
+  "name": "instafel-gplayapi",
+  "version": "1.0.0",
+  "description": "This project used to grab latest Instagram apks from Google Play",
+  "main": "gplayapi.js",
+  "scripts": {
+    "test": "node gplayapi.js"
+  },
+  "author": "mamiiblt",
+  "license": "ISC",
+  "dependencies": {
+    "child_process": "^1.0.2",
+    "dotenv": "^16.4.5",
+    "fs": "^0.0.1-security",
+    "https": "^1.0.0",
+    "path": "^0.12.7"
+  }
+}

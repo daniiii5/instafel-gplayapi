@@ -51,8 +51,8 @@ public class AppInfo {
         return infoObject.getString("ver_name");
     }
 
-    public String getVer_code() {
-        return infoObject.getString("ver_code");
+    public int getVer_code() {
+        return infoObject.getInt("ver_code");
     }
 
     public String getTarget_sdk() {
