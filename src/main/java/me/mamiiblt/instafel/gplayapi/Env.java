@@ -120,8 +120,7 @@ public class Env {
             }
         };
 
-        long delayMs = 30000; // check every 30 seconds
-        // long delayMs = 900000; // check every 15 minutes
+        long delayMs = 900000; // check every 15 minutes
         timer.scheduleAtFixedRate(task, 0, delayMs);
     }
 
@@ -158,7 +157,7 @@ public class Env {
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful()) throw new Exception("Instafel Release code is " + response.code());
+            if (!response.isSuccessful()) throw new Exception("Instafel Release response code is " + response.code());
 
             JSONObject responseObject = new JSONObject(response.body().string());
             String[] releaseBody = responseObject.getString("body").split("\n");

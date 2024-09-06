@@ -10,7 +10,7 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
 
-        // Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler()); // set an uncaught exception handler for abnormal status
+        Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler()); // set an uncaught exception handler for abnormal status
 
         Log.println("I", "Instafel GplayApi");
 
